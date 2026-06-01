@@ -5,6 +5,7 @@ from typing import Dict, List, Optional, Tuple
 
 from database.db_manager import get_db_manager
 from utils.logger import get_logger
+from utils.paths import get_database_path
 
 logger = get_logger(__name__)
 
@@ -13,9 +14,7 @@ class UsageTracker:
     """Theo dõi thời gian sử dụng và ứng dụng được mở"""
 
     def __init__(self, db_path: str = None):
-        if db_path is None:
-            db_path = os.path.join(os.path.dirname(__file__), '..', 'database', 'conversations.db')
-        self.db_path = db_path
+        self.db_path = db_path if db_path is not None else get_database_path()
         self.db_manager = get_db_manager(self.db_path)
         self.session_start: Optional[datetime] = None
         self.current_session_id: Optional[int] = None

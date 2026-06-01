@@ -7,15 +7,16 @@ from typing import Optional, Tuple
 
 import psutil
 
-
+from utils.paths import resource_path
 class TemperatureMonitor:
     """Quản lý việc đọc nhiệt độ từ OHM/LHM"""
-    
-    # OHM đã được đóng gói trong tools/, chỉ tìm ở đây
-    OHM_PATHS = [
-        os.path.join(os.path.dirname(__file__), '..', 'tools', 'OpenHardwareMonitor', 'OpenHardwareMonitor.exe'),
-        os.path.join(os.path.dirname(__file__), '..', 'tools', 'LibreHardwareMonitor', 'LibreHardwareMonitor.exe'),
-    ]
+
+    @staticmethod
+    def _ohm_paths():
+        return [
+            resource_path("tools", "OpenHardwareMonitor", "OpenHardwareMonitor.exe"),
+            resource_path("tools", "LibreHardwareMonitor", "LibreHardwareMonitor.exe"),
+        ]
     
     def __init__(self):
         self._ohm_process: Optional[subprocess.Popen] = None
@@ -23,7 +24,7 @@ class TemperatureMonitor:
         
     def find_ohm(self) -> Optional[str]:
         """Tìm đường dẫn đến OHM/LHM"""
-        for path in self.OHM_PATHS:
+        for path in self._ohm_paths():
             if os.path.exists(path):
                 return path
         return None
@@ -350,7 +351,7 @@ class TemperatureMonitor:
         # Không đọc được - kiểm tra OHM có cài không
         ohm_path = self.find_ohm()
         if not ohm_path:
-            tools_dir = os.path.join(os.path.dirname(__file__), '..', 'tools')
+            tools_dir = resource_path("tools")
             message = f"Chưa tìm thấy OpenHardwareMonitor. Vui lòng:\n1. Copy folder OpenHardwareMonitor vào: {tools_dir}\n2. Hoặc chạy OpenHardwareMonitor trước rồi hỏi lại."
             print(f"[TemperatureMonitor] {message}")
             return False, message

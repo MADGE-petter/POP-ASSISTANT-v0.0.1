@@ -40,7 +40,6 @@ from PyQt6.QtWidgets import (
 from view.ui_helpers import create_ui_footer, position_ui_footer
 from view.widgets import (
     AudioDialog,
-    DashboardDialog,
     HistoryUsageDialog,
     HistoryWindow,
     PersonalInfoDialog,
@@ -115,16 +114,16 @@ class PopView(QMainWindow):
         try:
             from PyQt6.QtGui import QPixmap
 
-            # Try PNG first (Qt reads PNG better)
-            png_path = os.path.join(os.path.dirname(__file__), '..', 'assets', 'icon.png')
+            from utils.paths import resource_path
+
+            png_path = resource_path("assets", "icon.png")
             if os.path.exists(png_path):
                 pixmap = QPixmap(png_path)
                 icon = QIcon(png_path)
                 if not icon.isNull() and pixmap.width() > 0:
                     self.setWindowIcon(icon)
             else:
-                # Try ICO fallback
-                ico_path = os.path.join(os.path.dirname(__file__), '..', 'assets', 'icon.ico')
+                ico_path = resource_path("assets", "icon.ico")
                 if os.path.exists(ico_path):
                     self.setWindowIcon(QIcon(ico_path))
         except Exception:
@@ -481,10 +480,6 @@ class PopView(QMainWindow):
         audio_action.triggered.connect(self.show_audio_dialog)
         self.menu.addAction(audio_action)
         
-        dashboard_action = QAction("Dashboard", self)
-        dashboard_action.triggered.connect(self.show_dashboard)
-        self.menu.addAction(dashboard_action)
-        
         history_action = QAction("Lịch sử trò chuyện", self)
         history_action.triggered.connect(self.show_history)
         self.menu.addAction(history_action)
@@ -741,7 +736,10 @@ class PopView(QMainWindow):
     def show_personal_info(self):
         """Hiển thị thông tin cá nhân"""
         sql = self.controller.sql if self.controller else None
-        dialog = PersonalInfoDialog(self.user_name, sql, self)
+        analytics = None
+        if self.controller and hasattr(self.controller, 'system'):
+            analytics = self.controller.system.analytics_service
+        dialog = PersonalInfoDialog(self.user_name, sql, analytics, self)
         dialog.exec()
     
     def sign_out(self):
@@ -794,21 +792,7 @@ class PopView(QMainWindow):
         self.history_widget.activateWindow()
         print("HistoryWindow shown from PopView")
     
-    def show_dashboard(self):
-        """Hiển thị Dashboard Analytics"""
-        try:
-            # Get analytics from controller's system controller
-            analytics = None
-            if self.controller and hasattr(self.controller, 'system'):
-                analytics = self.controller.system.analytics_service
-            
-            if analytics:
-                dialog = DashboardDialog(analytics, self)
-                dialog.exec()
-            else:
-                QMessageBox.warning(self, "Lỗi", "Analytics service chưa được khởi tạo")
-        except Exception as e:
-            QMessageBox.warning(self, "Lỗi", f"Không thể mở Dashboard: {e}")
+
     
     def add_message(self, text, is_user=False):
         """Thêm tin nhắn vào chat"""

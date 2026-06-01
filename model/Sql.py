@@ -62,12 +62,12 @@ class SqlService:
             
             cursor.execute("""
                 SELECT COUNT(*) as total_conversations,
-                       COUNT(DISTINCT DATE(thoiGianTao)) as total_days,
-                       COUNT(DISTINCT maPhien) as total_sessions
+                       COUNT(DISTINCT DATE(c.thoiGianTao)) as total_days,
+                       COUNT(DISTINCT c.maPhien) as total_sessions
                 FROM conversations c
                 JOIN users u ON c.maNguoiDung = u.maNguoiDung
-                WHERE u.tenNguoiDung = ?
-            """, (user_name,))
+                WHERE LOWER(u.tenNguoiDung) = ?
+            """, (user_name.lower(),))
             
             stats = cursor.fetchone()
             conn.close()
@@ -89,16 +89,16 @@ class SqlService:
             cursor = conn.cursor()
             
             cursor.execute("""
-                SELECT DATE(thoiGianTao) as date,
+                SELECT DATE(c.thoiGianTao) as date,
                        COUNT(*) as conversation_count,
-                       COUNT(DISTINCT maPhien) as session_count
+                       COUNT(DISTINCT c.maPhien) as session_count
                 FROM conversations c
                 JOIN users u ON c.maNguoiDung = u.maNguoiDung
-                WHERE u.tenNguoiDung = ?
-                GROUP BY DATE(thoiGianTao)
+                WHERE LOWER(u.tenNguoiDung) = ?
+                GROUP BY DATE(c.thoiGianTao)
                 ORDER BY date DESC
                 LIMIT ?
-            """, (user_name, limit))
+            """, (user_name.lower(), limit))
             
             stats = cursor.fetchall()
             conn.close()
@@ -116,8 +116,8 @@ class SqlService:
             cursor.execute("""
                 SELECT MIN(c.thoiGianTao) FROM conversations c
                 JOIN users u ON c.maNguoiDung = u.maNguoiDung
-                WHERE u.tenNguoiDung = ?
-            """, (user_name,))
+                WHERE LOWER(u.tenNguoiDung) = ?
+            """, (user_name.lower(),))
             
             result = cursor.fetchone()
             conn.close()
